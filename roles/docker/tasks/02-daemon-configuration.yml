@@ -1,0 +1,17 @@
+---
+- name: 2 - Docker daemon configuration
+  block:
+    - name: 2.2-2.16 - Configure Docker daemon with secure settings
+      template:
+        src: templates/daemon.json.j2
+        dest: /etc/docker/daemon.json
+        mode: '0644'
+        owner: root
+        group: root
+      notify: restart docker
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Docker daemon configuration failed: {{ ansible_failed_result }}"
+      failed_when: true

@@ -1,0 +1,69 @@
+- name: 1.1. Control Plane Node Configuration Files
+  block:
+    - name: 1.1.9-1.1.10 Ensure that the Container Network Interface file permissions are set to 600 or more restrictive and file ownership is set to root:root
+      file:
+        path: /etc/cni/net.d
+        mode: '0600'
+        owner: root
+        group: root
+        state: directory
+        recurse: yes
+
+    - name: Create etcd user and group
+      user:
+        name: etcd
+        system: yes
+        state: present
+        create_home: no
+        shell: /sbin/nologin
+
+    - name: 1.1.11-1.1.12 Ensure that the etcd data directory permissions are set to 700 or more restrictive and data directory ownership is set to etcd:etcd
+      file:
+        path: /var/lib/etcd
+        mode: '0700'
+        owner: etcd
+        group: etcd
+        state: directory
+        recurse: yes
+
+    - name: 1.1.19 Ensure that the Kubernetes PKI directory and file ownership is set to root:root
+      file:
+        path: /etc/kubernetes/pki
+        owner: root
+        group: root
+        state: directory
+        recurse: yes
+
+    - name: 1.1.20 Ensure that the Kubernetes PKI certificate file permissions are set to 600 or more restrictive
+      block:
+        - name: Find certificate files
+          find:
+            paths: /etc/kubernetes/pki
+            patterns: "*.crt"
+            recurse: yes
+          register: cert_files
+
+        - name: Set permissions on certificate files
+          file:
+            path: "{{ item.path }}"
+            mode: '0600'
+            owner: root
+            group: root
+          with_items: "{{ cert_files.files }}"
+
+    - name: 1.1.21 Ensure that the Kubernetes PKI key file permissions are set to 600
+      block:
+        - name: Find key files
+          find:
+            paths: /etc/kubernetes/pki
+            patterns: "*.key"
+            recurse: yes
+          register: key_files
+
+        - name: Set permissions on key files
+          file:
+            path: "{{ item.path }}"
+            mode: '0600'
+            owner: root
+            group: root
+          with_items: "{{ key_files.files }}"

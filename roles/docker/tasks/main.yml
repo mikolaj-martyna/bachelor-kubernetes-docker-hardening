@@ -1,0 +1,6 @@
+---
+- name: Docker Hardening
+  block:
+    - import_tasks: 01-host-configuration.yml
+    - import_tasks: 02-daemon-configuration.yml
+    - import_tasks: 03-daemon-files.yml

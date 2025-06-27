@@ -1,0 +1,64 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+
+authorization:
+  mode: Webhook
+
+cgroupDriver: systemd
+clusterDNS:
+  - 10.96.0.10
+clusterDomain: cluster.local
+containerRuntimeEndpoint: ""
+
+healthzBindAddress: 127.0.0.1
+healthzPort: 10248
+
+address: 0.0.0.0
+readOnlyPort: 0
+streamingConnectionIdleTimeout: "4h"
+makeIPTablesUtilChains: true
+eventRecordQPS: 5
+
+tlsCipherSuites:
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_RSA_WITH_AES_128_GCM_SHA256
+
+rotateCertificates: true
+serverTLSBootstrap: true
+
+staticPodPath: /etc/kubernetes/manifests
+
+featureGates:
+  RotateKubeletServerCertificate: true
+  AllAlpha: false
+
+podPidsLimit: 100
+
+runtimeRequestTimeout: "15m"
+runtimeCgroups: /system.slice/containerd.service
+kubeletCgroups: /system.slice/kubelet.service
+
+containerLogMaxSize: "100Mi"
+containerLogMaxFiles: 5
+serializeImagePulls: true
+
+evictionHard:
+  memory.available: "100Mi"
+  nodefs.available: "10%"
+  nodefs.inodesFree: "5%"
+
+memorySwap: {}

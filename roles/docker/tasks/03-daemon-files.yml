@@ -1,0 +1,115 @@
+---
+- name: 3 - Docker daemon configuration files
+  block:
+    - name: 3.1-3.2 - Ensure that the docker.service file ownership and permissions are set correctly
+      file:
+        path: /lib/systemd/system/docker.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart docker
+
+    - name: 3.3-3.4 - Ensure that docker.socket file ownership and permissions are set correctly
+      file:
+        path: /lib/systemd/system/docker.socket
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart docker
+
+    - name: 3.5-3.6 - Ensure that the /etc/docker directory ownership and permissions are set correctly
+      file:
+        path: /etc/docker
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: 3.7-3.8 - Ensure registry certificate file ownership and permissions
+      block:
+        - name: Check if registry certificates exist
+          stat:
+            path: /etc/docker/certs.d
+          register: registry_certs_dir
+
+        - name: Set registry certificate file ownership and permissions
+          file:
+            path: /etc/docker/certs.d
+            state: directory
+            owner: root
+            group: root
+            mode: '0444'
+            recurse: yes
+          when: registry_certs_dir.stat.exists
+
+    - name: 3.9-3.14 - Ensure TLS certificate file ownership and permissions
+      block:
+        - name: Check if TLS certificates exist
+          stat:
+            path: /etc/docker/tls
+          register: tls_dir
+
+        - name: Set TLS CA certificate file ownership and permissions
+          file:
+            path: /etc/docker/tls/ca.pem
+            state: file
+            owner: root
+            group: root
+            mode: '0444'
+          when: tls_dir.stat.exists
+
+        - name: Set Docker server certificate file ownership and permissions
+          file:
+            path: /etc/docker/tls/server-cert.pem
+            state: file
+            owner: root
+            group: root
+            mode: '0444'
+          when: tls_dir.stat.exists
+
+        - name: Set Docker server certificate key file ownership and permissions
+          file:
+            path: /etc/docker/tls/server-key.pem
+            state: file
+            owner: root
+            group: root
+            mode: '0400'
+          when: tls_dir.stat.exists
+
+    - name: 3.15-3.16 - Ensure that the Docker socket file ownership and permissions are set correctly
+      file:
+        path: /var/run/docker.sock
+        owner: root
+        group: docker
+        mode: '0660'
+
+    - name: 3.17-3.18 - Ensure that the daemon.json file ownership and permissions are set correctly
+      file:
+        path: /etc/docker/daemon.json
+        state: file
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart docker
+
+    - name: 3.19-3.20 - Ensure that the /etc/default/docker file ownership and permissions are set correctly
+      file:
+        path: /etc/default/docker
+        state: file
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart docker
+
+    - name: 3.23-3.24 - Ensure that the Containerd socket file ownership and permissions are set correctly
+      file:
+        path: /run/containerd/containerd.sock
+        owner: root
+        group: root
+        mode: '0660'
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Docker daemon configuration files failed: {{ ansible_failed_result }}"
+      failed_when: true

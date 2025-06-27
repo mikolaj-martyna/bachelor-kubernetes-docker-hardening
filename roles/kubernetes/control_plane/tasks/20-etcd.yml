@@ -1,0 +1,24 @@
+- name: 2. Etcd Node Configuration
+  block:
+    - name: Ensure etcd certificates directory exists
+      file:
+        path: /etc/kubernetes/pki/etcd
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: 2.1-2.7 Configure etcd with secure settings
+      template:
+        src: templates/etcd.yaml.j2
+        dest: /etc/kubernetes/manifests/etcd.yaml
+        mode: '0600'
+        owner: root
+        group: root
+      notify: restart kubelet
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Etcd configuration failed: {{ ansible_failed_result }}"
+      failed_when: true

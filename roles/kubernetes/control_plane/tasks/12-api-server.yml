@@ -1,0 +1,42 @@
+- name: 1.2. API Server
+  block:
+    - name: Ensure audit log directory exists (needed for 1.2.16)
+      file:
+        path: /var/log/apiserver
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+
+    - name: 1.2.1-1.2.29 Configure API server with secure settings
+      template:
+        src: templates/kube-apiserver.yaml.j2
+        dest: /etc/kubernetes/manifests/kube-apiserver.yaml
+        mode: '0600'
+        owner: root
+        group: root
+      notify: restart kubelet
+
+    - name: 1.2.9 Configure admission control
+      template:
+        src: templates/admission-control-config.yaml.j2
+        dest: /etc/kubernetes/admission-control-config.yaml
+        mode: '0600'
+        owner: root
+        group: root
+      notify: restart kubelet
+
+    - name: 1.2.27-1.2.28 Configure encryption for etcd
+      template:
+        src: templates/encryption-config.yaml.j2
+        dest: /etc/kubernetes/encryption-config.yaml
+        mode: '0600'
+        owner: root
+        group: root
+      notify: restart kubelet
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "API Server configuration failed: {{ ansible_failed_result }}"
+      failed_when: true

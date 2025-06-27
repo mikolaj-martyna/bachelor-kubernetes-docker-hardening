@@ -1,0 +1,28 @@
+all:
+  hosts:
+    control_plane_1:
+      ansible_host: "{{ control_plane_1_ip }}"
+      ansible_user: "{{ ansible_user }}"
+      ansible_become: true
+      ansible_ssh_private_key_file: "{{ ssh_private_key }}"
+      kubernetes_node_labels:
+        node-role.kubernetes.io/control-plane: true
+    worker_1:
+      ansible_host: "{{ worker_1_ip }}"
+      ansible_user: "{{ ansible_user }}"
+      ansible_become: true
+      ansible_ssh_private_key_file: "{{ ssh_private_key }}"
+      kubernetes_node_labels:
+        node-role.kubernetes.io/control-plane: false
+
+  children:
+    k8s_cluster:
+      hosts:
+        control_plane_1:
+          kubernetes_node_type: control_plane, worker
+        worker_1:
+          kubernetes_node_type: worker
+    docker_hosts:
+      hosts:
+        control_plane_1:
+        worker_1:

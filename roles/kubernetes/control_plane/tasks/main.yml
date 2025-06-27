@@ -1,0 +1,11 @@
+---
+- name: Control Plane and Etcd Node Security Configuration
+  block:
+    - import_tasks: 20-etcd.yml
+    - import_tasks: 21-verify-etcd.yml
+    - import_tasks: 32-logging.yml
+    - import_tasks: 11-control-plane.yml
+    - import_tasks: 12-api-server.yml
+    - import_tasks: 13-verify-api-server.yml
+    - import_tasks: 13-controller-manager.yml
+    - import_tasks: 14-scheduler.yml

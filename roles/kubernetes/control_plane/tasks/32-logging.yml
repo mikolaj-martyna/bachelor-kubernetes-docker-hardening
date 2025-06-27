@@ -1,0 +1,23 @@
+- name: 3.2 Logging
+  block:
+    - name: Ensure audit log directory exists
+      file:
+        path: /var/log/apiserver
+        state: directory
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: 3.2.1-3.2.2 Create audit policy file
+      template:
+        src: templates/audit-policy.yaml.j2
+        dest: /etc/kubernetes/audit-policy.yaml
+        mode: '0600'
+        owner: root
+        group: root
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Logging configuration failed: {{ ansible_failed_result }}"
+      failed_when: true

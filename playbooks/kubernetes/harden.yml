@@ -1,0 +1,12 @@
+---
+- name: Harden hosts belonging to a Kubernetes cluster according to CIS Benchmark
+  hosts: k8s_cluster
+  become: yes
+  vars_files:
+    - ../../inventory/credentials.yml
+
+  roles:
+    - role: ../../roles/kubernetes/control_plane
+      when: "'control_plane' in kubernetes_node_type"
+    - role: ../../roles/kubernetes/worker_nodes
+      when: "'worker' in kubernetes_node_type"

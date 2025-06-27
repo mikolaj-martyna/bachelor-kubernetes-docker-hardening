@@ -1,0 +1,9 @@
+---
+- name: Harden hosts with Docker present according to CIS Benchmark
+  hosts: docker_hosts
+  become: yes
+  vars_files:
+    - ../../inventory/credentials.yml
+
+  roles:
+    - role: ../../roles/docker

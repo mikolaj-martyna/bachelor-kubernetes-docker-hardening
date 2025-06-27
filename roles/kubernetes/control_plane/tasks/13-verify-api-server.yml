@@ -1,0 +1,43 @@
+---
+- name: Wait for API server to be restarted and ready with new configuration
+  block:
+    - name: Get current kube-apiserver pod ID (if exists)
+      shell: "crictl pods --name kube-apiserver -q"
+      register: old_apiserver_pod_id
+      changed_when: false
+      failed_when: false
+
+    - name: Set fact for old pod ID
+      set_fact:
+        old_pod_id: "{{ old_apiserver_pod_id.stdout | default('') }}"
+
+    - name: Wait for kube-apiserver pod to be restarted (different pod ID)
+      shell: "crictl pods --name kube-apiserver -q"
+      register: new_apiserver_pod_id
+      until: >
+        new_apiserver_pod_id.stdout != "" and 
+        (old_pod_id == "" or new_apiserver_pod_id.stdout != old_pod_id)
+      retries: 24
+      delay: 5
+      changed_when: false
+
+    - name: Get container ID for the kube-apiserver container
+      shell: "crictl ps --pod {{ new_apiserver_pod_id.stdout }} --name kube-apiserver -q"
+      register: apiserver_container_id
+      changed_when: false
+      failed_when: false
+
+    - name: Wait for kube-apiserver container to be running
+      shell: "crictl inspect --output json {{ apiserver_container_id.stdout }} | grep -q -E '\"status\":\\s*\"running\"|\"state\":\\s*\"CONTAINER_RUNNING\"'"
+      register: container_status
+      until: container_status.rc == 0
+      retries: 12
+      delay: 5
+      changed_when: false
+      failed_when: false
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Kube-apiserver verification failed: {{ ansible_failed_result }}"
+      failed_when: true

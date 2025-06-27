@@ -1,0 +1,12 @@
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    providers:
+      - identity: {}
+      # Uncomment and provide an encryption key to enable encryption
+      # - aescbc:
+      #     keys:
+      #       - name: kubernetes_encryption_key
+      #         secret: {{ encryption_key }}

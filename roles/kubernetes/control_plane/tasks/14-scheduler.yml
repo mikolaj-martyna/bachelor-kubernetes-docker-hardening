@@ -1,0 +1,16 @@
+- name: 1.4. Scheduler
+  block:
+    - name: 1.4.1-1.4.2 Configure Scheduler with secure settings
+      template:
+        src: templates/kube-scheduler.yaml.j2
+        dest: /etc/kubernetes/manifests/kube-scheduler.yaml
+        mode: '0600'
+        owner: root
+        group: root
+      notify: restart kubelet
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Scheduler configuration failed: {{ ansible_failed_result }}"
+      failed_when: true

@@ -1,0 +1,43 @@
+---
+- name: Wait for etcd to be restarted and ready with new configuration
+  block:
+    - name: Get current etcd pod ID (if exists)
+      shell: "crictl pods --name etcd -q"
+      register: old_etcd_pod_id
+      changed_when: false
+      failed_when: false
+
+    - name: Set fact for old pod ID
+      set_fact:
+        old_pod_id: "{{ old_etcd_pod_id.stdout | default('') }}"
+
+    - name: Wait for etcd pod to be restarted (different pod ID)
+      shell: "crictl pods --name etcd -q"
+      register: new_etcd_pod_id
+      until: >
+        new_etcd_pod_id.stdout != "" and 
+        (old_pod_id == "" or new_etcd_pod_id.stdout != old_pod_id)
+      retries: 24
+      delay: 5
+      changed_when: false
+
+    - name: Wait for etcd health endpoint to be available
+      uri:
+        url: http://127.0.0.1:2381/readyz
+        method: GET
+        status_code: 200
+      register: etcd_health
+      until: etcd_health.status == 200
+      retries: 12
+      delay: 5
+      changed_when: false
+
+    - name: Verify etcd is running with new configuration
+      debug:
+        msg: "Etcd pod has been successfully restarted with new configuration (Pod ID: {{ new_etcd_pod_id.stdout }})"
+
+  rescue:
+    - name: Handle errors
+      debug:
+        msg: "Etcd verification failed: {{ ansible_failed_result }}"
+      failed_when: true
